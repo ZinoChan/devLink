@@ -1,0 +1,15 @@
+export const platforms = [
+  "github",
+  "youtube",
+  "linkedin",
+  "facebook",
+  "frontendmentor",
+  "hashnode",
+  "twitter",
+  "twitch",
+  "devto",
+  "codewars",
+  "freecodecamp",
+  "gitlab",
+  "stackoverflow",
+] as const;
