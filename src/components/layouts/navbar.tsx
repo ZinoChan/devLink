@@ -1,6 +1,6 @@
 import { Link, NavLink } from "react-router";
 import { Logo } from "../logo";
-import { Link2 } from "lucide-react";
+import { CircleUserRound, Link2 } from "lucide-react";
 
 export default function Navbar() {
   return (
@@ -11,15 +11,24 @@ export default function Navbar() {
             <Logo />
           </div>
         </Link>
-        <ul className="flex">
+        <ul className="flex items-center space-x-4">
           <NavLink
-            className={(isActive) =>
-              `rounded-sm px-6 py-2 text-purple flex space-x-2 items-center justify-center ${isActive ? "bg-purple-light" : ""}`
+            className={({ isActive }) =>
+              `rounded-sm capitalize px-6 py-2 text-purple flex space-x-2 items-center justify-center ${isActive ? "bg-purple-light" : ""}`
             }
             to="/dashboard"
           >
             <Link2 className="w-4 h-4 mr-2" />
             Link
+          </NavLink>
+          <NavLink
+            className={({ isActive }) =>
+              `rounded-sm capitalize px-6 py-2 text-purple flex space-x-2 items-center justify-center ${isActive ? "bg-purple-light" : ""}`
+            }
+            to="/profile"
+          >
+            <CircleUserRound className="w-4 h-4 mr-2" />
+            profile details
           </NavLink>
         </ul>
         <div className="flex items-center">

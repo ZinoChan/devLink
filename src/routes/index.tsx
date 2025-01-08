@@ -3,6 +3,7 @@ import AuthCallback from "@/pages/auth/callback";
 import Login from "@/pages/auth/login";
 import Register from "@/pages/auth/register";
 import Dashboard from "@/pages/dashboard";
+import ProfileDetails from "@/pages/profile";
 import { Route, Routes } from "react-router";
 
 export default function AppRoute() {
@@ -16,6 +17,7 @@ export default function AppRoute() {
       <Route path="/register" element={<Register />} />
       <Route element={<DashboardLayout />}>
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/profile" element={<ProfileDetails />} />
       </Route>
     </Routes>
   );

@@ -89,6 +89,12 @@ export default function LinkForm() {
         values.links ?? [],
         data?.links ?? []
       );
+      if (
+        newLinks.length === 0 &&
+        updatedLinks.length === 0 &&
+        deletedLinks.length === 0
+      )
+        return;
       const insertAndDeleteMutation = insertAndDeleteLinks({
         variables: {
           insertObjects: newLinks.map((link, index) => ({
@@ -107,7 +113,6 @@ export default function LinkForm() {
               platform: link.platform,
               url: link.url,
               display_order: link.display_order,
-              is_active: link.is_active,
             },
           },
         })
@@ -159,7 +164,7 @@ export default function LinkForm() {
           type="button"
           variant="outline"
           className="w-full font-semibold text-purple border border-purple h-[46px]"
-          onClick={() => append({ platform: "", url: "", is_active: true })}
+          onClick={() => append({ platform: "", url: "" })}
         >
           + Add new link
         </Button>
@@ -253,10 +258,7 @@ export default function LinkForm() {
           </Alert>
         )}
         <footer className="text-right min-w-32 mt-4 border-t border-t-borders p-4 w-full lg:py-6 lg:px-10">
-          <Button
-            type="submit"
-            disabled={fields.length === 0 || mutationLoading || updateLoading}
-          >
+          <Button type="submit" disabled={mutationLoading || updateLoading}>
             {mutationLoading || updateLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -7,7 +7,6 @@ export const GET_USER_LINKS = gql`
       platform
       url
       display_order
-      is_active
       created_at
     }
   }
@@ -25,7 +24,6 @@ export const INSERT_AND_DELETE_LINKS = gql`
         platform
         url
         display_order
-        is_active
         created_at
       }
     }
@@ -46,7 +44,6 @@ export const UPDATE_LINK = gql`
         platform
         url
         display_order
-        is_active
         updated_at
       }
     }

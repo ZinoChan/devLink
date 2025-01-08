@@ -15,8 +15,11 @@ import { Loader, LockIcon, MailIcon } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { auth } from "@/services/auth0.service";
 import { Auth0Error } from "auth0-js";
+import { useState } from "react";
 
 export default function Login() {
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
   const form = useForm<AuthInput>({
     resolver: zodResolver(authSchema),
     defaultValues: {
@@ -27,17 +30,21 @@ export default function Login() {
 
   async function onSubmit(values: AuthInput) {
     try {
+      setError(null);
+      setLoading(true);
       auth.login(
         {
           username: values.email,
           password: values.password,
           realm: "Username-Password-Authentication",
-          redirectUri: "http://localhost:5173/callback",
+          redirectUri: import.meta.env.VITE_REDIRECT_URI,
           responseType: "token id_token",
         },
         function (err: Auth0Error | null, result: unknown) {
           if (err) {
             console.error(err);
+            setError(err.description || "An error occurred");
+            setLoading(false);
             return;
           }
           console.log(result);
@@ -45,6 +52,8 @@ export default function Login() {
       );
     } catch (error) {
       console.error(error);
+      setLoading(false);
+      setError("An error occurred");
     }
   }
 
@@ -57,7 +66,12 @@ export default function Login() {
           <Logo />
         </header>
 
-        <div className="w-full max-w-md mx-auto rounded-lg md:p-10 md:bg-white md:shadow-sm">
+        <div className="w-96 mx-auto rounded-lg md:p-10 md:bg-white md:shadow-sm">
+          {error && (
+            <div className="bg-red/20 p-3 border-red rounded-sm mb-4">
+              <p className="text-red">{error}</p>
+            </div>
+          )}
           <div className="mb-4">
             <h1 className="text-dark-grey text-2xl font-bold mb-2 md:text-[32px]">
               Login
@@ -115,9 +129,9 @@ export default function Login() {
               <button
                 className="mt-6 mb-6 font-semibold disabled:bg-grey text-white h-[46px] w-full flex items-center justify-center rounded-lg bg-purple disabled:opacity-50 disabled:cursor-not-allowed lg:hover:bg-purple-hover lg:transition-colors"
                 type="submit"
-                disabled={isPending}
+                disabled={loading}
               >
-                {isPending ? <Loader className="animate-spin" /> : "Login"}
+                {loading ? <Loader className="animate-spin" /> : "Login"}
               </button>
 
               <p className="text-grey text-center">
