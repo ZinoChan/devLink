@@ -10,10 +10,7 @@ export default function AppRoute() {
   return (
     <Routes>
       <Route path="/" element={<Login />} />
-      <Route
-        path="/callback"
-        Component={(props) => <AuthCallback {...props} />}
-      />
+      <Route path="/callback" element={<AuthCallback />} />
       <Route path="/register" element={<Register />} />
       <Route element={<DashboardLayout />}>
         <Route path="/dashboard" element={<Dashboard />} />
