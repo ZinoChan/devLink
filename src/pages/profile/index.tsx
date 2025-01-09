@@ -17,10 +17,19 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@apollo/client";
 import { GET_USER_PROFILE, UPDATE_USER_PROFILE } from "@/graphql/user";
 import { useEffect } from "react";
+import { usePreviewStore } from "@/lib/zustand";
+import toast from "react-hot-toast";
 
 const ProfileDetails = () => {
+  const updateStoreUser = usePreviewStore((state) => state.updateUser);
   const { data } = useQuery(GET_USER_PROFILE);
-  const updateProfile = useMutation(UPDATE_USER_PROFILE);
+  const [updateProfile, { loading: isUpdating, error: updateError }] =
+    useMutation(UPDATE_USER_PROFILE, {
+      refetchQueries: [{ query: GET_USER_PROFILE }],
+      onCompleted: () => {
+        toast.success("Profile updated successfully!");
+      },
+    });
   const form = useForm<ProfileInput>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
@@ -32,8 +41,16 @@ const ProfileDetails = () => {
   });
 
   useEffect(() => {
+    const subscription = form.watch((value) => {
+      if (value) {
+        updateStoreUser(value);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [updateStoreUser, form]);
+  useEffect(() => {
     if (data?.users) {
-      localStorage.setItem("user_id", data.users[0].id);
       form.reset(
         {
           first_name: data.users[0].first_name,
@@ -47,9 +64,9 @@ const ProfileDetails = () => {
   }, [data]);
 
   const onSubmit = (values: ProfileInput) => {
-    updateProfile[0]({
+    updateProfile({
       variables: {
-        id: localStorage.getItem("user_id"),
+        id: data?.users[0].id,
         first_name: values.first_name,
         last_name: values.last_name,
         email: values.email,
@@ -62,6 +79,11 @@ const ProfileDetails = () => {
     <section className=" grid grid-cols-3 gap-6">
       <PhonePreview />
       <div className="bg-white rounded-lg p-8 relative col-span-2 md:pt-10">
+        {updateError && (
+          <div className="bg-red-100 p-3 border-red-500 rounded-sm mb-4">
+            <p className="text-red-500">{updateError.message}</p>
+          </div>
+        )}
         <div className="mb-6">
           <h3 className="text-xl font-semibold">Profile Details</h3>
           <p className="text-sm text-gray-500">
@@ -134,7 +156,9 @@ const ProfileDetails = () => {
             </div>
 
             <footer className="text-right min-w-32 mt-4 border-t border-t-borders p-4 w-full lg:py-6 lg:px-10">
-              <Button type="submit">Save</Button>
+              <Button type="submit" disabled={isUpdating}>
+                {isUpdating ? "Saving..." : "Save"}
+              </Button>
             </footer>
           </form>
         </Form>
