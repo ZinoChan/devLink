@@ -32,6 +32,7 @@ export default function Login() {
     try {
       setError(null);
       setLoading(true);
+      localStorage.removeItem("access_token");
       auth.login(
         {
           username: values.email,

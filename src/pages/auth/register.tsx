@@ -16,8 +16,11 @@ import { Logo } from "@/components/logo";
 import { auth } from "@/services/auth0.service";
 import { Auth0Error } from "auth0-js";
 import toast from "react-hot-toast";
+import { useState } from "react";
 
 export default function Register() {
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
   const navigate = useNavigate();
   const form = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
@@ -28,27 +31,31 @@ export default function Register() {
     },
   });
 
-  const isPending = form.formState.isSubmitting;
-
   async function onSubmit(values: RegisterInput) {
     try {
+      setError(null);
+      setLoading(true);
       auth.signup(
         {
           email: values.email,
           password: values.password,
           connection: "Username-Password-Authentication",
         },
-        function (err: Auth0Error | null, result: unknown) {
+        function (err: Auth0Error | null) {
           if (err) {
-            console.error(err);
+            setLoading(false);
+            setError(
+              `${err.description || "An error occured"} try different email`
+            );
             return;
           }
-          console.log(result);
+          setLoading(false);
           toast.success("Registration successful! Please log in.");
           navigate("/");
         }
       );
     } catch (error) {
+      setLoading(false);
       console.error(error);
       toast.error("An unexpected error occurred.");
     }
@@ -61,6 +68,11 @@ export default function Register() {
       </header>
 
       <div className="w-full max-w-md mx-auto rounded-lg md:p-10 md:bg-white md:shadow-sm">
+        {error && (
+          <div className="bg-red/20 p-3 border-red rounded-sm mb-4">
+            <p className="text-red">{error}</p>
+          </div>
+        )}
         <div className="mb-4">
           <h1 className="text-dark-grey text-2xl font-bold mb-2 md:text-[32px]">
             Create account
@@ -69,7 +81,7 @@ export default function Register() {
         </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} noValidate>
-            <fieldset className="space-y-4" disabled={isPending}>
+            <fieldset className="space-y-4" disabled={loading}>
               <legend className="sr-only">Registration Form</legend>
 
               <FormField
@@ -144,9 +156,9 @@ export default function Register() {
             <button
               className="mt-6 mb-6 font-semibold text-white h-[46px] w-full flex items-center justify-center rounded-lg bg-purple disabled:opacity-50 disabled:cursor-not-allowed lg:hover:bg-purple-hover lg:transition-colors"
               type="submit"
-              disabled={isPending}
+              disabled={loading}
             >
-              {isPending ? (
+              {loading ? (
                 <Loader className="animate-spin" />
               ) : (
                 "Create new account"
