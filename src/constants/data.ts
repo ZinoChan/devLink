@@ -8,8 +8,6 @@ export const platforms = [
   "twitter",
   "twitch",
   "devto",
-  "codewars",
-  "freecodecamp",
   "gitlab",
   "stackoverflow",
 ] as const;

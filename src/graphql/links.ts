@@ -2,6 +2,12 @@ import { gql } from "@apollo/client";
 
 export const GET_USER_LINKS = gql`
   query GetUserLinks {
+    users {
+      email
+      first_name
+      last_name
+      profile_picture_url
+    }
     links {
       id
       platform

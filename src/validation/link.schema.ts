@@ -1,9 +1,10 @@
+import { Icons } from "@/components/icons";
+import { platforms } from "@/constants/data";
 import * as z from "zod";
 
 export const linkSchema = z.object({
-  platform: z.string().min(1, "Platform is required"),
+  platform: z.enum(platforms as unknown as [keyof typeof Icons]),
   url: z.string().min(1, "URL is required").url("Please enter a valid URL"),
-  is_active: z.boolean().optional(),
   id: z.string().optional(),
 });
 

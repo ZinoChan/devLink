@@ -11,6 +11,8 @@ export default function Dashboard() {
     onError: (error) => {
       console.error("Error fetching user profile:", error);
       localStorage.removeItem("user_info");
+      localStorage.removeItem("user_id");
+      localStorage.removeItem("access_token");
       navigate("/", {
         state: { error: "Session expired or invalid. Please log in again." },
       });

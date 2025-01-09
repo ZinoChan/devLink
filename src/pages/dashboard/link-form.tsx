@@ -22,8 +22,12 @@ import { useEffect } from "react";
 import { categorizeLink } from "@/helpers/categorizedLinks";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { usePreviewStore } from "@/lib/zustand";
+import { Icons } from "@/components/icons";
+import { PlatformLink } from "@/types/links.types";
 
 export default function LinkForm() {
+  const updateStoreLinks = usePreviewStore((state) => state.updateLinks);
   const {
     data,
     loading: queryLoading,
@@ -41,11 +45,12 @@ export default function LinkForm() {
   ] = useMutation(INSERT_AND_DELETE_LINKS, {
     onError: (error) => {
       console.error("Mutation error:", error);
-      toast.error("Failed to insert or delete links. Please try again.");
+      toast.error("Failed to save links. Please try again.");
     },
     onCompleted: () => {
-      toast.success("Links inserted and deleted successfully!");
+      toast.success("Links saved successfully!");
     },
+    refetchQueries: [{ query: GET_USER_LINKS }],
   });
 
   const [updateLink, { loading: updateLoading, error: updateError }] =
@@ -57,6 +62,7 @@ export default function LinkForm() {
       onCompleted: () => {
         toast.success("Links updated successfully!");
       },
+      refetchQueries: [{ query: GET_USER_LINKS }],
     });
 
   const form = useForm<LinksValues>({
@@ -67,6 +73,18 @@ export default function LinkForm() {
   });
 
   useEffect(() => {
+    const subscription = form.watch((value) => {
+      if (value.links) {
+        updateStoreLinks(
+          value.links.filter((link) => link !== undefined) as PlatformLink[]
+        );
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [updateStoreLinks, form]);
+
+  useEffect(() => {
     if (data?.links) {
       form.reset(
         {
@@ -75,7 +93,7 @@ export default function LinkForm() {
         { keepDefaultValues: true }
       );
     }
-  }, [data]);
+  }, [data, form]);
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -164,7 +182,7 @@ export default function LinkForm() {
           type="button"
           variant="outline"
           className="w-full font-semibold text-purple border border-purple h-[46px]"
-          onClick={() => append({ platform: "", url: "" })}
+          onClick={() => append({ platform: "github", url: "" })}
         >
           + Add new link
         </Button>
@@ -195,7 +213,7 @@ export default function LinkForm() {
 
                 <Select
                   defaultValue={form.watch(`links.${index}.platform`)}
-                  onValueChange={(value) =>
+                  onValueChange={(value: keyof typeof Icons) =>
                     form.setValue(`links.${index}.platform`, value)
                   }
                 >
