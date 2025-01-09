@@ -5,7 +5,13 @@ const httpLink = createHttpLink({
   uri: import.meta.env.VITE_HASURA_ENDPOINT,
 });
 
-const authLink = setContext((_, { headers }) => {
+const authLink = setContext((operation, { headers }) => {
+  const publicOperation = ["GetPublicPreview"];
+  const isPublicOperation =
+    operation.operationName &&
+    publicOperation.includes(operation.operationName);
+  if (isPublicOperation) return { headers };
+
   const token = localStorage.getItem("access_token");
   return {
     headers: {

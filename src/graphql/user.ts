@@ -36,3 +36,20 @@ export const UPDATE_USER_PROFILE = gql`
     }
   }
 `;
+
+export const GET_PUBLIC_PREVIEW = gql`
+  query GetPublicPreview($userId: uuid!) {
+    users(where: { id: { _eq: $userId } }) {
+      email
+      first_name
+      last_name
+      profile_picture_url
+    }
+    links(where: { user: { id: { _eq: $userId } } }) {
+      id
+      platform
+      url
+      display_order
+    }
+  }
+`;

@@ -68,7 +68,7 @@ export default function LinkForm() {
   const form = useForm<LinksValues>({
     resolver: zodResolver(LinksSchema),
     defaultValues: {
-      links: [],
+      links: data?.links || [],
     },
   });
 

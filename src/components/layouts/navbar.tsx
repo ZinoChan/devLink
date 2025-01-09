@@ -2,7 +2,7 @@ import { Link, NavLink } from "react-router";
 import { Logo } from "../logo";
 import { CircleUserRound, Link2 } from "lucide-react";
 
-export default function Navbar() {
+export default function Navbar({ userId }: { userId: string }) {
   return (
     <header className="bg-grey-light h-32 md:p-6">
       <nav className="h-20 flex justify-between items-center w-full ps-6 pe-4  bg-white font-semibold md:rounded-lg">
@@ -34,7 +34,7 @@ export default function Navbar() {
         <div className="flex items-center">
           <Link
             className="text-purple border-purple h-[42px] flex items-center justify-center w-[52px] border rounded md:w-auto md:px-[27px] md:h-[46px] lg:transition-colors lg:hover:bg-light-purple"
-            to="/preview"
+            to={`/preview/${userId}`}
           >
             Preview
           </Link>

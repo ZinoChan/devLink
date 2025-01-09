@@ -2,6 +2,7 @@ import { PlatformLink } from "@/types/links.types";
 import { create } from "zustand";
 
 interface User {
+  id?: string;
   first_name?: string;
   last_name?: string;
   email?: string;
