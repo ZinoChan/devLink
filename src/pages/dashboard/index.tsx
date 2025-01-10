@@ -4,6 +4,7 @@ import { useQuery } from "@apollo/client";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router";
 import LinkForm from "./link-form";
+import { LoaderCircle } from "lucide-react";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -21,10 +22,18 @@ export default function Dashboard() {
     },
   });
 
-  if (loading) return <div>Loading...</div>;
+  if (loading)
+    return (
+      <div className="flex items-center justify-center flex-col h-80">
+        <p className="mb-4">Loading Your data...</p>
+        <div className="w-max mx-auto">
+          <LoaderCircle className="animate-spin text-purple" size={48} />
+        </div>
+      </div>
+    );
 
   return (
-    <section className=" grid grid-cols-3 gap-6">
+    <section className=" lg:grid grid-cols-3 gap-6">
       <PhonePreview />
       <LinkForm />
     </section>

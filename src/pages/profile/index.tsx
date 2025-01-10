@@ -61,7 +61,7 @@ const ProfileDetails = () => {
         { keepDefaultValues: true }
       );
     }
-  }, [data]);
+  }, [data, form]);
 
   const onSubmit = (values: ProfileInput) => {
     updateProfile({
@@ -76,9 +76,9 @@ const ProfileDetails = () => {
   };
 
   return (
-    <section className=" grid grid-cols-3 gap-6">
+    <section className=" lg:grid grid-cols-3 gap-6">
       <PhonePreview />
-      <div className="bg-white rounded-lg p-8 relative col-span-2 md:pt-10">
+      <div className="bg-white rounded-lg sm:p-8 p-4 relative col-span-2 md:pt-10">
         {updateError && (
           <div className="bg-red-100 p-3 border-red-500 rounded-sm mb-4">
             <p className="text-red-500">{updateError.message}</p>
@@ -92,7 +92,7 @@ const ProfileDetails = () => {
         </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
-            <div className="bg-grey-light rounded-md p-4 mb-4 flex items-center justify-between">
+            <div className="bg-grey-light rounded-md p-4 mb-4 sm:flex-row flex-col sm:space-y-0 space-y-4 flex items-center justify-between">
               <Label className="text-grey">Profile picture</Label>
 
               <FormField
@@ -109,7 +109,7 @@ const ProfileDetails = () => {
                 control={form.control}
                 name="first_name"
                 render={({ field }) => (
-                  <FormItem className="grid grid-cols-2 gap-12 items-center justify-between">
+                  <FormItem className="sm:grid grid-cols-2 gap-12 items-center justify-between">
                     <FormLabel>First name*</FormLabel>
                     <div>
                       <FormControl>
@@ -124,7 +124,7 @@ const ProfileDetails = () => {
                 control={form.control}
                 name="last_name"
                 render={({ field }) => (
-                  <FormItem className="grid grid-cols-2 gap-12 items-center justify-between">
+                  <FormItem className="sm:grid grid-cols-2 gap-12 items-center justify-between">
                     <FormLabel>Last name*</FormLabel>
                     <div>
                       <FormControl>
@@ -139,7 +139,7 @@ const ProfileDetails = () => {
                 control={form.control}
                 name="email"
                 render={({ field }) => (
-                  <FormItem className="grid grid-cols-2 gap-12 items-center justify-between">
+                  <FormItem className="sm:grid grid-cols-2 gap-12 items-center justify-between">
                     <FormLabel>Email*</FormLabel>
                     <div>
                       <FormControl>

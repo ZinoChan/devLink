@@ -1,6 +1,8 @@
 import { LinkPreview } from "@/components/link-preview";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { GET_PUBLIC_PREVIEW } from "@/graphql/user";
+import { useAuth } from "@/hooks/useAuth";
 import { PlatformLink } from "@/types/links.types";
 import { useQuery } from "@apollo/client";
 import { Check, Copy } from "lucide-react";
@@ -10,6 +12,7 @@ import { Link, useParams } from "react-router";
 
 export default function Preview() {
   const params = useParams();
+  const { isAuthenticated, isLoading } = useAuth();
   const { data } = useQuery(GET_PUBLIC_PREVIEW, {
     variables: { userId: params.userId },
     onError: (error) => {
@@ -36,33 +39,44 @@ export default function Preview() {
     }
   };
   return (
-    <main>
-      <header className="bg-grey-light h-32 md:p-6">
+    <main className="relative">
+      <div className="absolute top-0-left-0 z-0 w-full h-80 bg-purple rounded-b-[32px]"></div>
+      <header className=" h-32 md:p-6 relative z-10">
         <nav className="h-20 flex justify-between items-center w-full ps-6 pe-4  bg-white font-semibold md:rounded-lg">
-          <Link
-            to="/dashboard"
-            className="rounded-sm capitalize px-6 py-2 text-purple flex space-x-2 items-center justify-center"
-          >
-            Back to Editor
-          </Link>
-          <Button onClick={handleShare} className="flex items-center gap-2">
-            {copied ? (
-              <Check className="w-4 h-4" />
-            ) : (
-              <Copy className="w-4 h-4" />
-            )}
-            Share Link
-          </Button>
+          {isLoading && (
+            <>
+              <Skeleton className="w-24 h-8 rounded-md" />
+              <Skeleton className="w-24 h-8 rounded-md" />
+            </>
+          )}
+          {isAuthenticated && (
+            <>
+              <Link
+                to="/dashboard"
+                className="rounded-sm capitalize px-6 py-2 text-purple flex space-x-2 items-center justify-center"
+              >
+                Back to Editor
+              </Link>
+              <Button onClick={handleShare} className="flex items-center gap-2">
+                {copied ? (
+                  <Check className="w-4 h-4" />
+                ) : (
+                  <Copy className="w-4 h-4" />
+                )}
+                Share Link
+              </Button>
+            </>
+          )}
         </nav>
       </header>
 
-      <div className="w-max mx-auto relative">
+      <div className="w-max mx-auto relative mt-10">
         <div className="bg-white w-80  p-6 rounded-md">
           <div className="bg-grey-light w-24 h-24 mx-auto rounded-full p-1">
             {profile_picture_url && (
               <img
                 className="w-24 h-24 object-cover object-top rounded-full border-2 border-purple"
-                src={profile_picture_url || "/images/default-profile.jpg"}
+                src={profile_picture_url}
                 alt={`${first_name} ${last_name}`}
               />
             )}

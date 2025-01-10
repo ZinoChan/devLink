@@ -1,25 +1,25 @@
 import { Link, NavLink } from "react-router";
 import { Logo } from "../logo";
-import { CircleUserRound, Link2 } from "lucide-react";
+import { CircleUserRound, Eye, Link2 } from "lucide-react";
+import { LogoMobile } from "../icons/logo-mobile";
 
 export default function Navbar({ userId }: { userId: string }) {
   return (
     <header className="bg-grey-light h-32 md:p-6">
       <nav className="h-20 flex justify-between items-center w-full ps-6 pe-4  bg-white font-semibold md:rounded-lg">
         <Link to="/dashboard">
-          <div className="hidden md:block md:w-[146px]">
-            <Logo />
-          </div>
+          <Logo className="hidden sm:block" />
+          <LogoMobile className="sm:hidden" />
         </Link>
-        <ul className="flex items-center space-x-4">
+        <ul className="flex items-center md:space-x-4 space-x-1">
           <NavLink
             className={({ isActive }) =>
               `rounded-sm capitalize px-6 py-2 text-purple flex space-x-2 items-center justify-center ${isActive ? "bg-purple-light" : ""}`
             }
             to="/dashboard"
           >
-            <Link2 className="w-4 h-4 mr-2" />
-            Link
+            <Link2 className="w-4 h-4" />
+            <span className="hidden sm:block">Link</span>
           </NavLink>
           <NavLink
             className={({ isActive }) =>
@@ -27,16 +27,17 @@ export default function Navbar({ userId }: { userId: string }) {
             }
             to="/profile"
           >
-            <CircleUserRound className="w-4 h-4 mr-2" />
-            profile details
+            <CircleUserRound className="w-4 h-4" />
+            <span className="hidden sm:block">profile details</span>
           </NavLink>
         </ul>
         <div className="flex items-center">
           <Link
-            className="text-purple border-purple h-[42px] flex items-center justify-center w-[52px] border rounded md:w-auto md:px-[27px] md:h-[46px] lg:transition-colors lg:hover:bg-light-purple"
+            className="text-purple border-purple py-2 px-4 sm:px-6 flex items-center justify-center border rounded md:w-auto lg:transition-colors lg:hover:bg-light-purple"
             to={`/preview/${userId}`}
           >
-            Preview
+            <Eye className="sm:hidden w-4 h-4" />
+            <span className="hidden sm:block">Preview</span>
           </Link>
         </div>
       </nav>
