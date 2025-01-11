@@ -2,8 +2,11 @@ import { Link, NavLink } from "react-router";
 import { Logo } from "../logo";
 import { CircleUserRound, Eye, Link2 } from "lucide-react";
 import { LogoMobile } from "../icons/logo-mobile";
+import { CHECK_USER } from "@/graphql/user";
+import { useQuery } from "@apollo/client";
 
-export default function Navbar({ userId }: { userId: string }) {
+export default function Navbar() {
+  const { data } = useQuery(CHECK_USER);
   return (
     <header className="bg-grey-light h-32 md:p-6">
       <nav className="h-20 flex justify-between items-center w-full ps-6 pe-4  bg-white font-semibold md:rounded-lg">
@@ -32,13 +35,15 @@ export default function Navbar({ userId }: { userId: string }) {
           </NavLink>
         </ul>
         <div className="flex items-center">
-          <Link
-            className="text-purple border-purple py-2 px-4 sm:px-6 flex items-center justify-center border rounded md:w-auto lg:transition-colors lg:hover:bg-light-purple"
-            to={`/preview/${userId}`}
-          >
-            <Eye className="sm:hidden w-4 h-4" />
-            <span className="hidden sm:block">Preview</span>
-          </Link>
+          {data?.users[0]?.id && (
+            <Link
+              className="text-purple border-purple py-2 px-4 sm:px-6 flex items-center justify-center border rounded md:w-auto lg:transition-colors lg:hover:bg-light-purple"
+              to={`/preview/${data?.users[0]?.id}`}
+            >
+              <Eye className="sm:hidden w-4 h-4" />
+              <span className="hidden sm:block">Preview</span>
+            </Link>
+          )}
         </div>
       </nav>
     </header>

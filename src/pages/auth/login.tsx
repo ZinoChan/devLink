@@ -19,7 +19,8 @@ import { useState } from "react";
 
 export default function Login() {
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const form = useForm<AuthInput>({
     resolver: zodResolver(authSchema),
     defaultValues: {
@@ -31,34 +32,34 @@ export default function Login() {
   async function onSubmit(values: AuthInput) {
     try {
       setError(null);
-      setLoading(true);
+      setIsSubmitting(true);
       localStorage.removeItem("access_token");
-      auth.login(
-        {
-          username: values.email,
-          password: values.password,
-          realm: "Username-Password-Authentication",
-          redirectUri: import.meta.env.VITE_REDIRECT_URI,
-          responseType: "token id_token",
-        },
-        function (err: Auth0Error | null, result: unknown) {
-          if (err) {
-            console.error(err);
-            setError(err.description || "An error occurred");
-            setLoading(false);
-            return;
+      await new Promise<void>((resolve, reject) => {
+        auth.login(
+          {
+            username: values.email,
+            password: values.password,
+            realm: "Username-Password-Authentication",
+            redirectUri: import.meta.env.VITE_REDIRECT_URI,
+            responseType: "token id_token",
+          },
+          (err: Auth0Error | null) => {
+            if (err) {
+              reject(new Error(err.description || "Login failed"));
+              return;
+            }
+            resolve();
           }
-          console.log(result);
-        }
-      );
+        );
+      });
     } catch (error) {
-      console.error(error);
-      setLoading(false);
-      setError("An error occurred");
+      const errorMessage =
+        error instanceof Error ? error.message : "An unexpected error occurred";
+      setError(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   }
-
-  const isPending = form.formState.isSubmitting;
 
   return (
     <main className="flex items-center justify-center h-full">
@@ -83,8 +84,8 @@ export default function Login() {
           </div>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} noValidate>
-              <fieldset className="space-y-4" disabled={isPending}>
-                <legend className="sr-only">Registration Form</legend>
+              <fieldset className="space-y-4" disabled={isSubmitting}>
+                <legend className="sr-only">Login Form</legend>
 
                 <FormField
                   control={form.control}
@@ -130,9 +131,9 @@ export default function Login() {
               <button
                 className="mt-6 mb-6 font-semibold disabled:bg-grey text-white h-[46px] w-full flex items-center justify-center rounded-lg bg-purple disabled:opacity-50 disabled:cursor-not-allowed lg:hover:bg-purple-hover lg:transition-colors"
                 type="submit"
-                disabled={loading}
+                disabled={isSubmitting}
               >
-                {loading ? <Loader className="animate-spin" /> : "Login"}
+                {isSubmitting ? <Loader className="animate-spin" /> : "Login"}
               </button>
 
               <p className="text-grey text-center">

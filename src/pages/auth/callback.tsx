@@ -5,101 +5,95 @@ import { auth } from "@/services/auth0.service";
 import { LoaderCircle } from "lucide-react";
 import toast from "react-hot-toast";
 
-interface UserInfo {
-  id: string;
-  email: string;
-}
-
 export default function AuthCallback() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const fetchUserInfo = async (accessToken: string): Promise<UserInfo> => {
-    try {
-      const response = await fetch(import.meta.env.VITE_HASURA_ENDPOINT, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          query: `
-              query GetUserInfo {
+  const fetchUserInfo = async (
+    accessToken: string
+  ): Promise<{ id: string }> => {
+    const response = await fetch(import.meta.env.VITE_HASURA_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({
+        query: `
+         query GetUserInfo {
                 users {
                   id
-                  email
                 }
               }
-            `,
-        }),
-      });
+        `,
+      }),
+    });
 
-      const data = await response.json();
-      if (data.errors) {
-        throw new Error(data.errors[0].message);
-      }
+    const data = await response.json();
+    if (data.errors) throw new Error(data.errors[0].message);
 
-      return data.data.users[0];
-    } catch (error) {
-      console.error("Error fetching user info:", error);
-      throw error;
-    }
+    const userInfo = data.data?.users[0];
+
+    if (!userInfo) throw new Error("No user data found");
+
+    return userInfo;
   };
 
   const handleAuthSuccess = async (accessToken: string) => {
     try {
+      localStorage.clear();
+
       localStorage.setItem("access_token", accessToken);
 
       const userInfo = await fetchUserInfo(accessToken);
 
       localStorage.setItem("user_info", JSON.stringify(userInfo));
 
-      navigate("/dashboard");
-    } catch (error) {
-      console.error("Error in auth success handler:", error);
+      navigate("/dashboard", { replace: true });
+    } catch (err) {
+      console.log("AuthFailed:", err);
+      toast.error("Authentication failed. Please try again.");
+      localStorage.clear();
       navigate("/", {
-        state: {
-          error: "Failed to fetch user information. Please try again.",
-        },
+        replace: true,
       });
-      toast.error("Failed to fetch user information. Please try again.");
     }
   };
 
-  useEffect(() => {
-    const processAuth = async () => {
-      const existingToken = localStorage.getItem("access_token");
-      if (existingToken) {
-        navigate("/dashboard");
-        return;
-      }
+  const parseAuthHash = async () => {
+    return new Promise<Auth0DecodedHash | null>((resolve, reject) => {
       auth.parseHash(
         {
           hash: location.hash,
         },
-        async (
+        (
           err: Auth0ParseHashError | null,
           authResult: Auth0DecodedHash | null
         ) => {
-          if (err) {
-            console.error("Auth0 hash parsing error:", err);
-            toast.error("Authentication failed. Please try again.");
-            return;
-          }
-
-          if (authResult && authResult.idToken) {
-            console.log(authResult);
-            await handleAuthSuccess(authResult.idToken);
-          } else {
-            console.error("No access token found in auth result");
-            navigate("/", {
-              state: {
-                error: "No access token received. Please try again.",
-              },
-            });
-          }
+          if (err) reject(err);
+          else if (!authResult) reject(new Error("Auth failed"));
+          else resolve(authResult);
         }
       );
+    });
+  };
+
+  useEffect(() => {
+    const processAuth = async () => {
+      try {
+        const existingToken = localStorage.getItem("access_token");
+        if (existingToken) {
+          // validate token
+          await fetchUserInfo(existingToken);
+          navigate("/dashboard", { replace: true });
+          return;
+        }
+        const authResult = await parseAuthHash();
+        if (!authResult?.idToken) throw new Error("invalid token");
+        await handleAuthSuccess(authResult.idToken);
+      } catch (error) {
+        console.log("Error processing auth:", error);
+      }
     };
 
     processAuth();

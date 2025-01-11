@@ -20,7 +20,8 @@ import { useState } from "react";
 
 export default function Register() {
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const navigate = useNavigate();
   const form = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
@@ -34,30 +35,32 @@ export default function Register() {
   async function onSubmit(values: RegisterInput) {
     try {
       setError(null);
-      setLoading(true);
-      auth.signup(
-        {
-          email: values.email,
-          password: values.password,
-          connection: "Username-Password-Authentication",
-        },
-        function (err: Auth0Error | null) {
-          if (err) {
-            setLoading(false);
-            setError(
-              `${err.description || "An error occured"} try different email`
-            );
-            return;
+      setIsSubmitting(true);
+      await new Promise((resolve, reject) => {
+        auth.signup(
+          {
+            email: values.email,
+            password: values.password,
+            connection: "Username-Password-Authentication",
+          },
+          (err: Auth0Error | null) => {
+            if (err) {
+              reject(new Error(err.description || "Registration failed"));
+              return;
+            }
+            resolve(true);
           }
-          setLoading(false);
-          toast.success("Registration successful! Please log in.");
-          navigate("/");
-        }
-      );
+        );
+      });
+      toast.success("Registration successful! Please log in.");
+      navigate("/");
     } catch (error) {
-      setLoading(false);
-      console.error(error);
-      toast.error("An unexpected error occurred.");
+      const errorMessage =
+        error instanceof Error ? error.message : "An unexpected error occurred";
+      setError(`${errorMessage}. Please try a different email.`);
+      console.error("Registration error:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -81,7 +84,7 @@ export default function Register() {
         </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} noValidate>
-            <fieldset className="space-y-4" disabled={loading}>
+            <fieldset className="space-y-4" disabled={isSubmitting}>
               <legend className="sr-only">Registration Form</legend>
 
               <FormField
@@ -156,9 +159,9 @@ export default function Register() {
             <button
               className="mt-6 mb-6 font-semibold text-white h-[46px] w-full flex items-center justify-center rounded-lg bg-purple disabled:opacity-50 disabled:cursor-not-allowed lg:hover:bg-purple-hover lg:transition-colors"
               type="submit"
-              disabled={loading}
+              disabled={isSubmitting}
             >
-              {loading ? (
+              {isSubmitting ? (
                 <Loader className="animate-spin" />
               ) : (
                 "Create new account"
