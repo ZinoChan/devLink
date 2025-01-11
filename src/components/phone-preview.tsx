@@ -22,10 +22,10 @@ export default function PhonePreview() {
   const { first_name, last_name, email, profile_picture_url } = user;
 
   return (
-    <div className="bg-white p-6 rounded-md shadow-sm hidden lg:flex  items-center justify-center">
+    <div className="bg-white sticky top-2 p-6 rounded-md shadow-sm hidden lg:flex  items-center justify-center">
       <div className="w-max relative">
         <PhoneIllustration />
-        <div className="absolute w-9/12 top-32 left-1/2 -translate-x-1/2">
+        <div className="absolute w-9/12 top-16 left-1/2 -translate-x-1/2">
           <div className="bg-grey-light w-24 h-24 mx-auto rounded-full p-1">
             {loading && <Skeleton className="w-24 h-24 rounded-full" />}
             {!loading && profile_picture_url && (
@@ -60,7 +60,7 @@ export default function PhonePreview() {
           </div>
           <div className="flex flex-col">
             {links
-              ?.slice(0, 4)
+              ?.slice(0, 5)
               .map(({ platform }) => (
                 <LinkPreview key={platform} platform={platform} />
               ))}

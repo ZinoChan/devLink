@@ -8,9 +8,7 @@ type PrivateRouteProps = {
 };
 
 export default function PrivateRoute({ children }: PrivateRouteProps) {
-  const { loading, error, data } = useQuery(CHECK_USER, {
-    fetchPolicy: "network-only",
-  });
+  const { loading, error, data } = useQuery(CHECK_USER);
   const location = useLocation();
   if (loading)
     return (

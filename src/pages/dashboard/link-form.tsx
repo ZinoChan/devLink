@@ -25,6 +25,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePreviewStore } from "@/lib/zustand";
 import { Icons } from "@/components/icons";
 import { PlatformLink } from "@/types/links.types";
+import FormSkeleton from "./form-skeleton";
 
 export default function LinkForm() {
   const updateStoreLinks = usePreviewStore((state) => state.updateLinks);
@@ -141,19 +142,6 @@ export default function LinkForm() {
     }
   };
 
-  if (queryLoading) {
-    return (
-      <div
-        className="flex items-center justify-center min-h-[400px]"
-        role="status"
-        aria-label="Loading links"
-      >
-        <Loader2 className="h-8 w-8 animate-spin text-purple" />
-        <span className="sr-only">Loading links...</span>
-      </div>
-    );
-  }
-
   if (queryError) {
     return (
       <Alert variant="destructive" role="alert">
@@ -177,117 +165,124 @@ export default function LinkForm() {
         </p>
       </div>
 
-      <div className="px-6 md:px-10">
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full font-semibold text-purple border border-purple h-[46px]"
-          onClick={() => append({ platform: "github", url: "" })}
-        >
-          + Add new link
-        </Button>
-      </div>
-
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="grid grid-rows-[auto,1fr,auto] lg:block lg:overflow-y-auto"
-      >
-        {fields.length > 0 ? (
-          <div className="px-6 space-y-4 mt-6 md:px-10">
-            {fields.map((field, index) => (
-              <div
-                key={field.customId}
-                className="bg-grey-light rounded-md p-4 space-y-3"
-              >
-                <div className="flex justify-between items-center">
-                  <h3 className="font-bold text-grey">Link #{index + 1}</h3>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="text-grey hover:text-red-500"
-                    onClick={() => remove(index)}
-                  >
-                    Remove
-                  </Button>
-                </div>
-
-                <Select
-                  defaultValue={form.watch(`links.${index}.platform`)}
-                  onValueChange={(value: keyof typeof Icons) =>
-                    form.setValue(`links.${index}.platform`, value)
-                  }
-                >
-                  <SelectTrigger className="bg-white h-12">
-                    <SelectValue placeholder="Select platform" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {platforms.map((platform) => (
-                      <SelectItem key={platform} value={platform}>
-                        {platform}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {form.formState.errors.links?.[index]?.platform && (
-                  <p className="text-red-500 text-sm">
-                    {form.formState.errors.links[index]?.platform?.message}
-                  </p>
-                )}
-
-                <Input
-                  placeholder="e.g. https://www.github.com/johnappleseed"
-                  {...form.register(`links.${index}.url`)}
-                  className="bg-white h-12 focus:shadow-purple-glow"
-                />
-                {form.formState.errors.links?.[index]?.url && (
-                  <p className="text-red-500 text-sm">
-                    {form.formState.errors.links[index]?.url?.message}
-                  </p>
-                )}
-              </div>
-            ))}
+      {queryLoading ? (
+        <FormSkeleton />
+      ) : (
+        <>
+          <div className="px-6 md:px-10 sticky top-2 z-20">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full font-semibold bg-white hover:bg-purple-light hover:text-purple text-purple border border-purple py-6  disabled:bg-grey-light disabled:cursor-not-allowed disabled:text-grey-borders disabled:border-grey-borders"
+              onClick={() => append({ platform: "github", url: "" })}
+              disabled={fields.length >= 5}
+            >
+              + Add new link
+            </Button>
           </div>
-        ) : (
-          <div className="px-6 mt-6 text-center mb-6 md:px-10 md:mb-0">
-            <div className="bg-light-grey rounded-lg py-[46px] px-5 md:py-20 lg:py-16">
-              <div>
-                <h2 className="mb-6 font-bold text-dark-grey text-2xl md:text-[32px]">
-                  Let's get you started
-                </h2>
-                <p className="text-grey max-w-[488px] mx-auto">
-                  Use the "Add new link" button to get started. Once you have
-                  more than one link, you can reorder and edit them. We're here
-                  to help you share your profiles with everyone!
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-        {(mutationError || updateError) && (
-          <Alert
-            variant="destructive"
-            className="mx-6 md:mx-10 mt-4"
-            role="alert"
+
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="grid grid-rows-[auto,1fr,auto] lg:block lg:overflow-y-auto"
           >
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Failed to save your changes. Please try again.
-            </AlertDescription>
-          </Alert>
-        )}
-        <footer className="text-right min-w-32 mt-4 border-t border-t-borders p-4 w-full lg:py-6 lg:px-10">
-          <Button type="submit" disabled={mutationLoading || updateLoading}>
-            {mutationLoading || updateLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
+            {fields.length > 0 ? (
+              <div className="px-6 space-y-4 mt-6 md:px-10">
+                {fields.map((field, index) => (
+                  <div
+                    key={field.customId}
+                    className="bg-grey-light rounded-md p-4 space-y-3"
+                  >
+                    <div className="flex justify-between items-center">
+                      <h3 className="font-bold text-grey">Link #{index + 1}</h3>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="text-grey hover:text-red-500"
+                        onClick={() => remove(index)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+
+                    <Select
+                      defaultValue={form.watch(`links.${index}.platform`)}
+                      onValueChange={(value: keyof typeof Icons) =>
+                        form.setValue(`links.${index}.platform`, value)
+                      }
+                    >
+                      <SelectTrigger className="bg-white h-12">
+                        <SelectValue placeholder="Select platform" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {platforms.map((platform) => (
+                          <SelectItem key={platform} value={platform}>
+                            {platform}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {form.formState.errors.links?.[index]?.platform && (
+                      <p className="text-red-500 text-sm">
+                        {form.formState.errors.links[index]?.platform?.message}
+                      </p>
+                    )}
+
+                    <Input
+                      placeholder="e.g. https://www.github.com/johnappleseed"
+                      {...form.register(`links.${index}.url`)}
+                      className="bg-white h-12 focus:shadow-purple-glow"
+                    />
+                    {form.formState.errors.links?.[index]?.url && (
+                      <p className="text-red-500 text-sm">
+                        {form.formState.errors.links[index]?.url?.message}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
             ) : (
-              "Save"
+              <div className="px-6 mt-6 text-center mb-6 md:px-10 md:mb-0">
+                <div className="bg-light-grey rounded-lg py-[46px] px-5 md:py-20 lg:py-16">
+                  <div>
+                    <h2 className="mb-6 font-bold text-dark-grey text-2xl md:text-[32px]">
+                      Let's get you started
+                    </h2>
+                    <p className="text-grey max-w-[488px] mx-auto">
+                      Use the "Add new link" button to get started. Once you
+                      have more than one link, you can reorder and edit them.
+                      We're here to help you share your profiles with everyone!
+                    </p>
+                  </div>
+                </div>
+              </div>
             )}
-          </Button>
-        </footer>
-      </form>
+            {(mutationError || updateError) && (
+              <Alert
+                variant="destructive"
+                className="mx-6 md:mx-10 mt-4"
+                role="alert"
+              >
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Failed to save your changes. Please try again.
+                </AlertDescription>
+              </Alert>
+            )}
+            <footer className="text-right min-w-32 mt-4 border-t border-t-borders p-4 w-full lg:py-6 lg:px-10">
+              <Button type="submit" disabled={mutationLoading || updateLoading}>
+                {mutationLoading || updateLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save"
+                )}
+              </Button>
+            </footer>
+          </form>
+        </>
+      )}
     </div>
   );
 }

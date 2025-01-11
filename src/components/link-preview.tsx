@@ -16,12 +16,22 @@ const platformStyles: Record<string, string> = {
   stackoverflow: "bg-[#EC7100] text-white",
 };
 
-export function LinkPreview({ platform }: { platform: keyof typeof Icons }) {
+export function LinkPreview({
+  platform,
+  isPreview = false,
+  url,
+}: {
+  platform: keyof typeof Icons;
+  isPreview?: boolean;
+  url?: string;
+}) {
   const platformClass = platformStyles[platform] || "bg-gray-800 text-white";
   const Icon = Icons[platform] || AtSign;
-
+  const Component = isPreview ? "a" : "button";
   return (
-    <button
+    <Component
+      target="_blank"
+      href={url}
       className={`flex items-center w-full h-[44px] px-4 py-4 mb-5 last:mb-0 rounded-lg text-sm relative cursor-pointer ${platformClass}`}
     >
       <div className="flex-shrink-0 mr-2">
@@ -37,6 +47,6 @@ export function LinkPreview({ platform }: { platform: keyof typeof Icons }) {
       </div>
       {platform}
       <ArrowRight size={16} className="ml-auto" />
-    </button>
+    </Component>
   );
 }

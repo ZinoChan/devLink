@@ -19,6 +19,7 @@ export default function Preview() {
       toast.error("Failed to load your links.");
       console.error("Error fetching links:", error);
     },
+    fetchPolicy: "network-only",
   });
   const [copied, setCopied] = useState(false);
 
@@ -73,24 +74,64 @@ export default function Preview() {
       <div className="w-max mx-auto relative mt-10">
         <div className="bg-white w-80  p-6 rounded-md">
           <div className="bg-grey-light w-24 h-24 mx-auto rounded-full p-1">
-            {profile_picture_url && (
+            {isLoading ? (
+              <Skeleton className="w-24 h-24 rounded-full" />
+            ) : profile_picture_url ? (
               <img
                 className="w-24 h-24 object-cover object-top rounded-full border-2 border-purple"
                 src={profile_picture_url}
                 alt={`${first_name} ${last_name}`}
               />
+            ) : (
+              <div className="w-24 h-24 rounded-full bg-grey-light" />
             )}
           </div>
           <div className="text-center mt-4 mb-16">
-            <h2 className="text-lg font-bold">
-              {first_name} {last_name}
-            </h2>
-            <p className="text-sm text-grey">{email}</p>
+            {isLoading ? (
+              <>
+                <Skeleton className="w-32 h-6 mx-auto mb-2" />
+                <Skeleton className="w-40 h-4 mx-auto" />
+              </>
+            ) : (
+              <>
+                {first_name || last_name ? (
+                  <h2 className="text-lg font-bold">
+                    {first_name} {last_name}
+                  </h2>
+                ) : (
+                  <div className="bg-grey-light mx-auto rounded w-32 h-6 mb-2" />
+                )}
+                {email ? (
+                  <p className="text-sm text-grey">{email}</p>
+                ) : (
+                  <div className="w-40 h-4 mx-auto bg-grey-light rounded" />
+                )}
+              </>
+            )}
           </div>
           <div className="flex flex-col">
-            {links?.map(({ platform }) => (
-              <LinkPreview key={platform} platform={platform} />
-            ))}
+            {isLoading
+              ? [...Array(3)].map((_, idx) => (
+                  <Skeleton
+                    key={`loading-link-${idx}`}
+                    className="w-full h-12 mb-4 rounded-md"
+                  />
+                ))
+              : links?.length
+                ? links.map(({ platform, url }) => (
+                    <LinkPreview
+                      key={platform}
+                      platform={platform}
+                      isPreview
+                      url={url}
+                    />
+                  ))
+                : [...Array(2)].map((_, idx) => (
+                    <div
+                      key={`placeholder-${idx}`}
+                      className="w-full h-12 bg-grey-light rounded-md mb-4"
+                    />
+                  ))}
           </div>
         </div>
       </div>
