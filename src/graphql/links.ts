@@ -13,27 +13,26 @@ export const GET_USER_LINKS = gql`
       platform
       url
       display_order
-      created_at
     }
   }
 `;
 
-export const INSERT_AND_DELETE_LINKS = gql`
-  mutation InsertAndDelete(
-    $insertObjects: [links_insert_input!]!
-    $deleteIds: [uuid!]!
-  ) {
-    insert_links(objects: $insertObjects) {
-      affected_rows
+export const INSERT_LINKS = gql`
+  mutation InsertLinks($links: [links_insert_input!]!) {
+    insert_links(objects: $links) {
       returning {
         id
         platform
         url
         display_order
-        created_at
       }
     }
-    delete_links(where: { id: { _in: $deleteIds } }) {
+  }
+`;
+
+export const DELETE_LINKS = gql`
+  mutation DeleteLinks($ids: [uuid!]!) {
+    delete_links(where: { id: { _in: $ids } }) {
       affected_rows
       returning {
         id
@@ -41,6 +40,7 @@ export const INSERT_AND_DELETE_LINKS = gql`
     }
   }
 `;
+
 export const UPDATE_LINK = gql`
   mutation UpdateLink($id: uuid!, $data: links_set_input!) {
     update_links(_set: $data, where: { id: { _eq: $id } }) {
