@@ -12,3 +12,4 @@ export const LinksSchema = z.object({
 });
 
 export type LinksValues = z.infer<typeof LinksSchema>;
+export type LinksInput = z.infer<typeof linkSchema>;

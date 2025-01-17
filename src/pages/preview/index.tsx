@@ -1,7 +1,6 @@
-import { LinkPreview } from "@/components/link-preview";
+import PreviewComponent from "@/components/preview";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SocialPlatform } from "@/enums/social-platform.enum";
 import { GET_PUBLIC_PREVIEW } from "@/gql/users";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@apollo/client";
@@ -13,7 +12,8 @@ import { Link, useParams } from "react-router";
 export default function Preview() {
   const params = useParams();
   const { isAuthenticated, isLoading } = useAuth();
-  const { data } = useQuery(GET_PUBLIC_PREVIEW, {
+
+  const { data, loading: previewLoading } = useQuery(GET_PUBLIC_PREVIEW, {
     variables: { userId: params.userId },
     onError: (error) => {
       toast.error("Failed to load your links.");
@@ -21,11 +21,8 @@ export default function Preview() {
     },
     fetchPolicy: "network-only",
   });
+
   const [copied, setCopied] = useState(false);
-
-  const { first_name, last_name, email, profile_picture_url } =
-    data?.users[0] || {};
-
   const handleShare = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
@@ -70,71 +67,14 @@ export default function Preview() {
           )}
         </nav>
       </header>
-
-      <div className="w-max mx-auto relative mt-10">
-        <div className="bg-white w-80  p-6 rounded-md">
-          <div className="bg-grey-light w-24 h-24 mx-auto rounded-full p-1">
-            {isLoading ? (
-              <Skeleton className="w-24 h-24 rounded-full" />
-            ) : profile_picture_url ? (
-              <img
-                className="w-24 h-24 object-cover object-top rounded-full border-2 border-purple"
-                src={profile_picture_url}
-                alt={`${first_name} ${last_name}`}
-              />
-            ) : (
-              <div className="w-24 h-24 rounded-full bg-grey-light" />
-            )}
-          </div>
-          <div className="text-center mt-4 mb-16">
-            {isLoading ? (
-              <>
-                <Skeleton className="w-32 h-6 mx-auto mb-2" />
-                <Skeleton className="w-40 h-4 mx-auto" />
-              </>
-            ) : (
-              <>
-                {first_name || last_name ? (
-                  <h2 className="text-lg font-bold">
-                    {first_name} {last_name}
-                  </h2>
-                ) : (
-                  <div className="bg-grey-light mx-auto rounded w-32 h-6 mb-2" />
-                )}
-                {email ? (
-                  <p className="text-sm text-grey">{email}</p>
-                ) : (
-                  <div className="w-40 h-4 mx-auto bg-grey-light rounded" />
-                )}
-              </>
-            )}
-          </div>
-          <div className="flex flex-col">
-            {isLoading
-              ? [...Array(3)].map((_, idx) => (
-                  <Skeleton
-                    key={`loading-link-${idx}`}
-                    className="w-full h-12 mb-4 rounded-md"
-                  />
-                ))
-              : data?.links?.length
-                ? data?.links.map(({ platform, url }) => (
-                    <LinkPreview
-                      key={platform}
-                      platform={platform as SocialPlatform}
-                      isPreview
-                      url={url}
-                    />
-                  ))
-                : [...Array(2)].map((_, idx) => (
-                    <div
-                      key={`placeholder-${idx}`}
-                      className="w-full h-12 bg-grey-light rounded-md mb-4"
-                    />
-                  ))}
-          </div>
-        </div>
-      </div>
+      {data && (
+        <PreviewComponent
+          variant="normal"
+          isLoading={previewLoading}
+          links={data?.links || []}
+          user={{ ...data?.users[0], id: "random" }}
+        />
+      )}
     </main>
   );
 }

@@ -1,50 +1,25 @@
-import { useForm, useFieldArray } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useFieldArray, useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { LinksSchema, LinksValues } from "@/validation/link.schema";
+import { LinksValues } from "@/validation/link.schema";
 import { categorizeLink } from "@/helpers/categorizedLinks";
 import { LinkFormHeader } from "./link-form-header";
 import { LinkField } from "./link-filed";
 import { EmptyLinksState } from "./empty-links-state";
-import { usePreviewStore } from "@/lib/zustand";
 import { useLinkMutations } from "@/hooks/useLinkMutations";
 import { Loader2 } from "lucide-react";
 import { SocialPlatform } from "@/enums/social-platform.enum";
 import { Links } from "@/__generated__/graphql";
+import { UserData } from "@/validation/user.schema";
 
 export default function LinkForm({ serverLinks }: { serverLinks: Links[] }) {
-  const { links, updateLinks: updateStoreLinks } = usePreviewStore();
   const { insertLinks, deleteLinks, updateLinks, loading } = useLinkMutations();
-
-  const form = useForm<LinksValues>({
-    resolver: zodResolver(LinksSchema),
-    values: {
-      links: links.map((link) => ({
-        platform: link.platform as SocialPlatform,
-        url: link.url,
-        id: link.id,
-      })),
-    },
-  });
+  const methods = useFormContext<UserData>();
 
   const { fields, append, remove } = useFieldArray({
-    control: form.control,
+    control: methods.control,
     name: "links",
     keyName: "customId",
   });
-
-  const handleAppend = () => {
-    const newLink = { platform: SocialPlatform.Github, url: "" };
-    append(newLink);
-    updateStoreLinks([...fields, newLink]);
-  };
-
-  const handleRemove = (index: number) => {
-    const updatedFields = [...fields];
-    updatedFields.splice(index, 1);
-    remove(index);
-    updateStoreLinks(updatedFields);
-  };
 
   const onSubmit = async (values: LinksValues) => {
     try {
@@ -61,31 +36,12 @@ export default function LinkForm({ serverLinks }: { serverLinks: Links[] }) {
               display_order: index,
             })),
           },
-          optimisticResponse: {
-            insert_links: {
-              __typename: "links_mutation_response",
-              returning: newLinks.map((link, index) => ({
-                id: `optimistic-${Date.now()}-${index}`,
-                platform: link.platform,
-                url: link.url,
-                display_order: index,
-              })),
-            },
-          },
         });
       }
 
       if (deletedLinks.length > 0) {
         await deleteLinks({
           variables: { linkIds: deletedLinks },
-          optimisticResponse: {
-            delete_links: {
-              __typename: "links_mutation_response",
-              returning: deletedLinks.map((id) => ({
-                id,
-              })),
-            },
-          },
         });
       }
 
@@ -99,21 +55,6 @@ export default function LinkForm({ serverLinks }: { serverLinks: Links[] }) {
                   platform: link.platform,
                   url: link.url,
                   display_order: link.display_order,
-                },
-              },
-              optimisticResponse: {
-                update_links: {
-                  __typename: "links_mutation_response",
-                  returning: [
-                    {
-                      __typename: "links",
-                      id: link.id,
-                      platform: link.platform,
-                      url: link.url,
-                      display_order: link.display_order ?? 0,
-                      updated_at: new Date().toISOString(),
-                    },
-                  ],
                 },
               },
             })
@@ -134,7 +75,7 @@ export default function LinkForm({ serverLinks }: { serverLinks: Links[] }) {
           type="button"
           variant="outline"
           className="w-full font-semibold bg-white hover:bg-purple-light hover:text-purple text-purple border border-purple py-6 disabled:bg-grey-light disabled:cursor-not-allowed disabled:text-grey-borders disabled:border-grey-borders"
-          onClick={() => handleAppend()}
+          onClick={() => append({ platform: SocialPlatform.Github, url: "" })}
           disabled={fields.length >= 5}
         >
           + Add new link
@@ -142,7 +83,7 @@ export default function LinkForm({ serverLinks }: { serverLinks: Links[] }) {
       </div>
 
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={methods.handleSubmit(onSubmit)}
         className="grid grid-rows-[auto,1fr,auto] lg:block lg:overflow-y-auto"
       >
         {fields.length > 0 ? (
@@ -151,8 +92,8 @@ export default function LinkForm({ serverLinks }: { serverLinks: Links[] }) {
               <LinkField
                 key={field.customId}
                 index={index}
-                form={form}
-                onRemove={() => handleRemove(index)}
+                form={methods}
+                onRemove={() => remove(index)}
               />
             ))}
           </div>

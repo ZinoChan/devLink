@@ -1,4 +1,4 @@
-import { LinkType } from "@/lib/zustand";
+import { LinkType } from "@/types";
 import { PlatformLink } from "@/types/links.types";
 
 export function categorizeLink(

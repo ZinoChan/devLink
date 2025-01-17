@@ -9,35 +9,16 @@ import {
 } from "@/components/ui/select";
 import { platforms } from "@/constants/data";
 import { SocialPlatform } from "@/enums/social-platform.enum";
-import { usePreviewStore } from "@/lib/zustand";
-import { LinksValues } from "@/validation/link.schema";
+import { UserData } from "@/validation/user.schema";
 import { UseFormReturn } from "react-hook-form";
 
 interface LinkFieldProps {
   index: number;
-  form: UseFormReturn<LinksValues>;
+  form: UseFormReturn<UserData>;
   onRemove: () => void;
 }
 
 export function LinkField({ index, form, onRemove }: LinkFieldProps) {
-  const { updateLinks: updateStoreLinks } = usePreviewStore();
-
-  const handlePlatformChange = (value: SocialPlatform) => {
-    form.setValue(`links.${index}.platform`, value, {
-      shouldValidate: true,
-    });
-
-    const currentLinks = form.getValues("links");
-    if (currentLinks) {
-      updateStoreLinks(
-        currentLinks.map((link, i) => ({
-          ...link,
-          display_order: i,
-        }))
-      );
-    }
-  };
-
   return (
     <div className="bg-grey-light rounded-md p-4 space-y-3">
       <div className="flex justify-between items-center">
@@ -54,7 +35,9 @@ export function LinkField({ index, form, onRemove }: LinkFieldProps) {
 
       <Select
         defaultValue={form.watch(`links.${index}.platform`)}
-        onValueChange={handlePlatformChange}
+        onValueChange={(value: SocialPlatform) =>
+          form.setValue(`links.${index}.platform`, value)
+        }
       >
         <SelectTrigger className="bg-white h-12">
           <SelectValue placeholder="Select platform" />

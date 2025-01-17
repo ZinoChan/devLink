@@ -41,7 +41,8 @@ export default function Login() {
             password: values.password,
             realm: "Username-Password-Authentication",
             redirectUri: import.meta.env.VITE_REDIRECT_URI,
-            responseType: "token id_token",
+            responseType: "token id_token refrech_token",
+            scope: "openid profile email offline_access",
           },
           (err: Auth0Error | null) => {
             if (err) {

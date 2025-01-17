@@ -70,6 +70,7 @@ export default function AuthCallback() {
           err: Auth0ParseHashError | null,
           authResult: Auth0DecodedHash | null
         ) => {
+          console.log(authResult);
           if (err) reject(err);
           else if (!authResult) reject(new Error("Auth failed"));
           else resolve(authResult);

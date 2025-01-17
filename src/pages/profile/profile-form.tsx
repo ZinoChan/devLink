@@ -9,25 +9,17 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { ProfileInput, profileSchema } from "@/validation/profile.schema";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { usePreviewStore, UserType } from "@/lib/zustand";
+import { useFormContext } from "react-hook-form";
 import { gql, useMutation } from "@apollo/client";
 import { UPDATE_USER_PROFILE } from "@/gql/users";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
-import { useEffect } from "react";
-import { debounce } from "@/lib/utils";
+import { UserData } from "@/validation/user.schema";
 
 export default function ProfileForm() {
-  const { user, updateUser } = usePreviewStore();
   const [updateProfile, { loading: isUpdating, error: updateError }] =
     useMutation(UPDATE_USER_PROFILE, {
-      onCompleted: (data) => {
-        if (data.update_users_by_pk) {
-          updateUser(data.update_users_by_pk);
-        }
+      onCompleted: () => {
         toast.success("Profile updated successfully!");
       },
       update: (cache, { data }) => {
@@ -53,50 +45,21 @@ export default function ProfileForm() {
       },
     });
 
-  const form = useForm<ProfileInput>({
-    resolver: zodResolver(profileSchema),
-    values: {
-      id: user.id,
-      first_name: user.first_name || "",
-      last_name: user.last_name || "",
-      email: user.email || "",
-      profile_picture_url: user.profile_picture_url || "",
-    },
-  });
-
-  const onSubmit = (values: ProfileInput) => {
+  const methods = useFormContext<UserData>();
+  const onSubmit = (values: UserData) => {
+    const { first_name, last_name, email, profile_picture_url } =
+      values.profile;
     updateProfile({
       variables: {
-        id: user?.id,
-        first_name: values.first_name,
-        last_name: values.last_name,
-        email: values.email,
-        profile_picture_url: values.profile_picture_url,
-      },
-      optimisticResponse: {
-        update_users_by_pk: {
-          __typename: "users",
-          ...values,
-          email: values.email || user.email,
-        },
+        id: methods.watch("profile.id"),
+        first_name,
+        last_name,
+        email,
+        profile_picture_url,
       },
     });
   };
-  useEffect(() => {
-    const debouncedUpdateUser = debounce((value: UserType) => {
-      if (value) {
-        updateUser(value);
-      }
-    }, 300);
 
-    const subscription = form.watch((value) => {
-      debouncedUpdateUser(value);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [updateUser, form]);
   return (
     <div className="bg-white rounded-lg sm:p-8 p-4 relative col-span-2 md:pt-10">
       {updateError && (
@@ -110,15 +73,15 @@ export default function ProfileForm() {
           Add your details to create a personal touch to your profile.
         </p>
       </div>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
+      <Form {...methods}>
+        <form onSubmit={methods.handleSubmit(onSubmit)}>
           <div className="bg-grey-light rounded-md p-4 mb-4 sm:flex-row flex-col sm:space-y-0 space-y-4 flex items-center justify-between">
             <Label className="text-grey">Profile picture</Label>
 
             <FormField
-              control={form.control}
-              name="profile_picture_url"
-              render={() => <ImageUpload name="profile_picture_url" />}
+              control={methods.control}
+              name="profile.profile_picture_url"
+              render={() => <ImageUpload name="profile.profile_picture_url" />}
             />
             <p className="text-grey text-xs max-w-48">
               Image must be below 1024x1024px. Use PNG or JPG format.
@@ -126,8 +89,8 @@ export default function ProfileForm() {
           </div>
           <div className="bg-grey-light rounded-md p-4">
             <FormField
-              control={form.control}
-              name="first_name"
+              control={methods.control}
+              name="profile.first_name"
               render={({ field }) => (
                 <FormItem className="sm:grid grid-cols-2 gap-12 items-center justify-between">
                   <FormLabel>First name*</FormLabel>
@@ -141,8 +104,8 @@ export default function ProfileForm() {
               )}
             />
             <FormField
-              control={form.control}
-              name="last_name"
+              control={methods.control}
+              name="profile.last_name"
               render={({ field }) => (
                 <FormItem className="sm:grid grid-cols-2 gap-12 items-center justify-between">
                   <FormLabel>Last name*</FormLabel>
@@ -156,8 +119,8 @@ export default function ProfileForm() {
               )}
             />
             <FormField
-              control={form.control}
-              name="email"
+              control={methods.control}
+              name="profile.email"
               render={({ field }) => (
                 <FormItem className="sm:grid grid-cols-2 gap-12 items-center justify-between">
                   <FormLabel>Email*</FormLabel>
