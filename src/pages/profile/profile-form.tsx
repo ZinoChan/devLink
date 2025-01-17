@@ -73,6 +73,13 @@ export default function ProfileForm() {
         email: values.email,
         profile_picture_url: values.profile_picture_url,
       },
+      optimisticResponse: {
+        update_users_by_pk: {
+          __typename: "users",
+          ...values,
+          email: values.email || user.email,
+        },
+      },
     });
   };
   useEffect(() => {

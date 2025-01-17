@@ -34,7 +34,6 @@ export const INSERT_LINKS = gql(`
 export const DELETE_LINKS = gql(`
 	 mutation DeleteLinks($linkIds: [uuid!]!) {
 	delete_links(where: { id: { _in: $linkIds } }) {
-	  affected_rows
 	  returning {
 	    id
 	  }
@@ -45,7 +44,6 @@ export const DELETE_LINKS = gql(`
 export const UPDATE_LINK = gql(`
   mutation UpdateLink($id: uuid!, $data: links_set_input!) {
     update_links(_set: $data, where: { id: { _eq: $id } }) {
-      affected_rows
       returning {
         id
         platform

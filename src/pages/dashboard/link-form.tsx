@@ -78,6 +78,14 @@ export default function LinkForm({ serverLinks }: { serverLinks: Links[] }) {
       if (deletedLinks.length > 0) {
         await deleteLinks({
           variables: { linkIds: deletedLinks },
+          optimisticResponse: {
+            delete_links: {
+              __typename: "links_mutation_response",
+              returning: deletedLinks.map((id) => ({
+                id,
+              })),
+            },
+          },
         });
       }
 
@@ -91,6 +99,21 @@ export default function LinkForm({ serverLinks }: { serverLinks: Links[] }) {
                   platform: link.platform,
                   url: link.url,
                   display_order: link.display_order,
+                },
+              },
+              optimisticResponse: {
+                update_links: {
+                  __typename: "links_mutation_response",
+                  returning: [
+                    {
+                      __typename: "links",
+                      id: link.id,
+                      platform: link.platform,
+                      url: link.url,
+                      display_order: link.display_order ?? 0,
+                      updated_at: new Date().toISOString(),
+                    },
+                  ],
                 },
               },
             })
