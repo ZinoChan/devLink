@@ -14,7 +14,7 @@ export function PublicRoute({ children }: PublicRouteProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-[calc(100vh-160px)] flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <LoaderCircle
             className="animate-spin text-purple mx-auto mb-4"

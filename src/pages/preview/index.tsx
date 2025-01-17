@@ -4,7 +4,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { SocialPlatform } from "@/enums/social-platform.enum";
 import { GET_PUBLIC_PREVIEW } from "@/gql/users";
 import { useAuth } from "@/hooks/useAuth";
-import { PlatformLink } from "@/types/links.types";
 import { useQuery } from "@apollo/client";
 import { Check, Copy } from "lucide-react";
 import { useState } from "react";
@@ -26,7 +25,7 @@ export default function Preview() {
 
   const { first_name, last_name, email, profile_picture_url } =
     data?.users[0] || {};
-  const links: PlatformLink[] = data?.links;
+
   const handleShare = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
@@ -118,8 +117,8 @@ export default function Preview() {
                     className="w-full h-12 mb-4 rounded-md"
                   />
                 ))
-              : links?.length
-                ? links.map(({ platform, url }) => (
+              : data?.links?.length
+                ? data?.links.map(({ platform, url }) => (
                     <LinkPreview
                       key={platform}
                       platform={platform as SocialPlatform}

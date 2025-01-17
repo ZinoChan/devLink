@@ -21,35 +21,8 @@ export function useLinksData() {
     },
   });
 
-  // const [deleteLinks, { loading: deleteLoading, error: deleteError }] =
-  //   useMutation(DELETE_LINKS, {
-  //     onError: (error) => {
-  //       toast.error("Failed to delete links");
-  //       console.error("Delete error:", error);
-  //     },
-  //   });
-
-  // const [updateLinks, { loading: updateLoading, error: updateError }] =
-  //   useMutation(UPDATE_LINK, {
-  //     onError: (error) => {
-  //       console.error("Update mutation error:", error);
-  //       toast.error("Failed to update links. Please try again.");
-  //     },
-  //     onCompleted: () => {
-  //       toast.success("Links updated successfully!");
-  //     },
-  //     refetchQueries: [{ query: GET_USER_LINKS }],
-  //   });
-
   return {
     data,
-    // queryLoading,
-    // queryError,
-    // insertLinks,
-    // deleteLinks,
-    // updateLinks,
-    // loading: queryLoading || insertLoading || deleteLoading || updateLoading,
-    // error: queryError || insertError || deleteError || updateError,
     loading: queryLoading,
     error: queryError,
   };

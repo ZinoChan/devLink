@@ -9,7 +9,7 @@ export type LinkType = Omit<
 
 export type UserType = Omit<
   Users,
-  "auth0_id" | "created_at" | "id" | "links" | "updated_at"
+  "auth0_id" | "created_at" | "links" | "updated_at"
 >;
 
 interface PreviewState {

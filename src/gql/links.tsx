@@ -3,6 +3,7 @@ import { gql } from "@/__generated__";
 export const GET_USER_LINKS = gql(`
   query GetUserLinks {
     users {
+      id
       email
       first_name
       last_name
