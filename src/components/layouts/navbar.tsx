@@ -2,7 +2,7 @@ import { Link, NavLink } from "react-router";
 import { Logo } from "../logo";
 import { CircleUserRound, Eye, Link2 } from "lucide-react";
 import { LogoMobile } from "../icons/logo-mobile";
-import { CHECK_USER } from "@/graphql/user";
+import { CHECK_USER } from "@/gql/users";
 import { useQuery } from "@apollo/client";
 
 export default function Navbar() {

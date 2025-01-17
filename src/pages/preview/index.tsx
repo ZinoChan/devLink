@@ -1,7 +1,8 @@
 import { LinkPreview } from "@/components/link-preview";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { GET_PUBLIC_PREVIEW } from "@/graphql/user";
+import { SocialPlatform } from "@/enums/social-platform.enum";
+import { GET_PUBLIC_PREVIEW } from "@/gql/users";
 import { useAuth } from "@/hooks/useAuth";
 import { PlatformLink } from "@/types/links.types";
 import { useQuery } from "@apollo/client";
@@ -121,7 +122,7 @@ export default function Preview() {
                 ? links.map(({ platform, url }) => (
                     <LinkPreview
                       key={platform}
-                      platform={platform}
+                      platform={platform as SocialPlatform}
                       isPreview
                       url={url}
                     />

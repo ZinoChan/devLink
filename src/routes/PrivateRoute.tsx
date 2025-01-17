@@ -1,4 +1,4 @@
-import { CHECK_USER } from "@/graphql/user";
+import { CHECK_USER } from "@/gql/users";
 import { useQuery } from "@apollo/client";
 import { LoaderCircle } from "lucide-react";
 import { Navigate, useLocation } from "react-router";

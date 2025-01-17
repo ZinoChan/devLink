@@ -1,6 +1,6 @@
-import { gql } from "@apollo/client";
+import { gql } from "@/__generated__";
 
-export const GET_USER_LINKS = gql`
+export const GET_USER_LINKS = gql(`
   query GetUserLinks {
     users {
       email
@@ -15,10 +15,10 @@ export const GET_USER_LINKS = gql`
       display_order
     }
   }
-`;
+`);
 
-export const INSERT_LINKS = gql`
-  mutation InsertLinks($links: [links_insert_input!]!) {
+export const INSERT_LINKS = gql(`
+  mutation InsertLinks($links: [links_insert_input!]!){
     insert_links(objects: $links) {
       returning {
         id
@@ -28,20 +28,20 @@ export const INSERT_LINKS = gql`
       }
     }
   }
-`;
+`);
 
-export const DELETE_LINKS = gql`
-  mutation DeleteLinks($ids: [uuid!]!) {
-    delete_links(where: { id: { _in: $ids } }) {
-      affected_rows
-      returning {
-        id
-      }
-    }
+export const DELETE_LINKS = gql(`
+	 mutation DeleteLinks($linkIds: [uuid!]!) {
+	delete_links(where: { id: { _in: $linkIds } }) {
+	  affected_rows
+	  returning {
+	    id
+	  }
+	}
   }
-`;
+`);
 
-export const UPDATE_LINK = gql`
+export const UPDATE_LINK = gql(`
   mutation UpdateLink($id: uuid!, $data: links_set_input!) {
     update_links(_set: $data, where: { id: { _eq: $id } }) {
       affected_rows
@@ -54,4 +54,4 @@ export const UPDATE_LINK = gql`
       }
     }
   }
-`;
+`);
