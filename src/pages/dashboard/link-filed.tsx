@@ -1,4 +1,3 @@
-import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -9,6 +8,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { platforms } from "@/constants/data";
+import { SocialPlatform } from "@/enums/social-platform.enum";
+import { usePreviewStore } from "@/lib/zustand";
 import { LinksValues } from "@/validation/link.schema";
 import { UseFormReturn } from "react-hook-form";
 
@@ -19,6 +20,24 @@ interface LinkFieldProps {
 }
 
 export function LinkField({ index, form, onRemove }: LinkFieldProps) {
+  const { updateLinks: updateStoreLinks } = usePreviewStore();
+
+  const handlePlatformChange = (value: SocialPlatform) => {
+    form.setValue(`links.${index}.platform`, value, {
+      shouldValidate: true,
+    });
+
+    const currentLinks = form.getValues("links");
+    if (currentLinks) {
+      updateStoreLinks(
+        currentLinks.map((link, i) => ({
+          ...link,
+          display_order: i,
+        }))
+      );
+    }
+  };
+
   return (
     <div className="bg-grey-light rounded-md p-4 space-y-3">
       <div className="flex justify-between items-center">
@@ -35,9 +54,7 @@ export function LinkField({ index, form, onRemove }: LinkFieldProps) {
 
       <Select
         defaultValue={form.watch(`links.${index}.platform`)}
-        onValueChange={(value: keyof typeof Icons) =>
-          form.setValue(`links.${index}.platform`, value)
-        }
+        onValueChange={handlePlatformChange}
       >
         <SelectTrigger className="bg-white h-12">
           <SelectValue placeholder="Select platform" />
@@ -55,7 +72,6 @@ export function LinkField({ index, form, onRemove }: LinkFieldProps) {
           {form.formState.errors.links[index]?.platform?.message}
         </p>
       )}
-
       <Input
         placeholder="e.g. https://www.github.com/johnappleseed"
         {...form.register(`links.${index}.url`)}

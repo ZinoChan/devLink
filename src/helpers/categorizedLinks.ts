@@ -1,8 +1,9 @@
+import { LinkType } from "@/lib/zustand";
 import { PlatformLink } from "@/types/links.types";
 
 export function categorizeLink(
   userLinks: PlatformLink[],
-  existingLinks: PlatformLink[]
+  existingLinks: LinkType[]
 ): {
   newLinks: PlatformLink[];
   updatedLinks: PlatformLink[];

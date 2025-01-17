@@ -1,30 +1,34 @@
-import { PlatformLink } from "@/types/links.types";
+import { Links } from "@/__generated__/graphql";
 import { create } from "zustand";
+import { Users } from "@/__generated__/graphql";
 
-interface User {
-  id?: string;
-  first_name?: string;
-  last_name?: string;
-  email?: string;
-  profile_picture_url?: string;
-}
+export type LinkType = Omit<
+  Links,
+  "user" | "created_at" | "updated_at" | "user_id"
+>;
+
+export type UserType = Omit<
+  Users,
+  "auth0_id" | "created_at" | "id" | "links" | "updated_at"
+>;
 
 interface PreviewState {
-  user: User;
-  links: PlatformLink[];
-  updateUser: (user: User) => void;
-  updateLinks: (links: PlatformLink[]) => void;
+  user: UserType;
+  links: LinkType[];
+  updateUser: (user: UserType) => void;
+  updateLinks: (links: Partial<LinkType>[]) => void;
   reset: () => void;
 }
 
 const initialState = {
-  user: {},
+  user: {} as UserType,
   links: [],
 };
 
 export const usePreviewStore = create<PreviewState>((set) => ({
   ...initialState,
   updateUser: (user) => set((state) => ({ user: { ...state.user, ...user } })),
+  //@ts-expect-error - This is a partial update
   updateLinks: (links) => set({ links }),
   reset: () => set(initialState),
 }));

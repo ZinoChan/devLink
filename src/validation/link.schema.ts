@@ -1,9 +1,8 @@
-import { Icons } from "@/components/icons";
-import { platforms } from "@/constants/data";
+import { SocialPlatform } from "@/enums/social-platform.enum";
 import * as z from "zod";
 
 export const linkSchema = z.object({
-  platform: z.enum(platforms as unknown as [keyof typeof Icons]),
+  platform: z.nativeEnum(SocialPlatform),
   url: z.string().min(1, "URL is required").url("Please enter a valid URL"),
   id: z.string().optional(),
 });

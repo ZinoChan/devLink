@@ -2,36 +2,28 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { LinksSchema, LinksValues } from "@/validation/link.schema";
-import { useEffect } from "react";
 import { categorizeLink } from "@/helpers/categorizedLinks";
-import { Loader2 } from "lucide-react";
-import { usePreviewStore } from "@/lib/zustand";
-import { PlatformLink } from "@/types/links.types";
-import FormSkeleton from "./form-skeleton";
-import { useLinksData } from "@/hooks/useLinksData";
 import { LinkFormHeader } from "./link-form-header";
 import { LinkField } from "./link-filed";
 import { EmptyLinksState } from "./empty-links-state";
-import LinkErrAlert from "./link-err-alert";
+import { usePreviewStore } from "@/lib/zustand";
+import { useLinkMutations } from "@/hooks/useLinkMutations";
+import { Loader2 } from "lucide-react";
+import { SocialPlatform } from "@/enums/social-platform.enum";
+import { Links } from "@/__generated__/graphql";
 
-export default function LinkForm() {
-  const {
-    data,
-    queryLoading,
-    queryError,
-    insertLinks,
-    deleteLinks,
-    updateLinks,
-    loading,
-    error,
-  } = useLinksData();
-
-  const updateStoreLinks = usePreviewStore((state) => state.updateLinks);
+export default function LinkForm({ serverLinks }: { serverLinks: Links[] }) {
+  const { links, updateLinks: updateStoreLinks } = usePreviewStore();
+  const { insertLinks, deleteLinks, updateLinks, loading } = useLinkMutations();
 
   const form = useForm<LinksValues>({
     resolver: zodResolver(LinksSchema),
-    defaultValues: {
-      links: data?.links || [],
+    values: {
+      links: links.map((link) => ({
+        platform: link.platform as SocialPlatform,
+        url: link.url,
+        id: link.id,
+      })),
     },
   });
 
@@ -41,35 +33,26 @@ export default function LinkForm() {
     keyName: "customId",
   });
 
-  useEffect(() => {
-    const subscription = form.watch((value) => {
-      if (value.links) {
-        updateStoreLinks(
-          value.links.filter((link) => link !== undefined) as PlatformLink[]
-        );
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [updateStoreLinks, form]);
+  const handleAppend = () => {
+    const newLink = { platform: SocialPlatform.Github, url: "" };
+    append(newLink);
+    updateStoreLinks([...fields, newLink]);
+  };
 
-  useEffect(() => {
-    if (data?.links) {
-      form.reset({ links: data.links }, { keepDefaultValues: true });
-    }
-  }, [data, form]);
+  const handleRemove = (index: number) => {
+    const updatedFields = [...fields];
+    updatedFields.splice(index, 1);
+    remove(index);
+    updateStoreLinks(updatedFields);
+  };
 
   const onSubmit = async (values: LinksValues) => {
     try {
       const { newLinks, updatedLinks, deletedLinks } = categorizeLink(
         values.links ?? [],
-        data?.links ?? []
+        serverLinks
       );
 
-      if (deletedLinks.length > 0) {
-        await deleteLinks({
-          variables: { ids: deletedLinks },
-        });
-      }
       if (newLinks.length > 0) {
         await insertLinks({
           variables: {
@@ -80,7 +63,7 @@ export default function LinkForm() {
           },
           optimisticResponse: {
             insert_links: {
-              __typename: "links-insertion-response",
+              __typename: "links_mutation_response",
               returning: newLinks.map((link, index) => ({
                 id: `optimistic-${Date.now()}-${index}`,
                 platform: link.platform,
@@ -89,6 +72,12 @@ export default function LinkForm() {
               })),
             },
           },
+        });
+      }
+
+      if (deletedLinks.length > 0) {
+        await deleteLinks({
+          variables: { linkIds: deletedLinks },
         });
       }
 
@@ -109,70 +98,58 @@ export default function LinkForm() {
         );
       }
     } catch (error) {
-      console.log("Error inserting links:", error);
+      console.error("Failed to save links:", error);
     }
   };
-
-  if (queryError) return <LinkErrAlert />;
 
   return (
     <div className="bg-white rounded-lg pt-6 relative col-span-2 md:pt-10">
       <LinkFormHeader />
 
-      {queryLoading ? (
-        <FormSkeleton />
-      ) : (
-        <>
-          <div className="px-6 md:px-10 sticky top-2 z-20">
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full font-semibold bg-white hover:bg-purple-light hover:text-purple text-purple border border-purple py-6 disabled:bg-grey-light disabled:cursor-not-allowed disabled:text-grey-borders disabled:border-grey-borders"
-              onClick={() => append({ platform: "github", url: "" })}
-              disabled={fields.length >= 5}
-            >
-              + Add new link
-            </Button>
+      <div className="px-6 md:px-10 sticky top-2 z-20">
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full font-semibold bg-white hover:bg-purple-light hover:text-purple text-purple border border-purple py-6 disabled:bg-grey-light disabled:cursor-not-allowed disabled:text-grey-borders disabled:border-grey-borders"
+          onClick={() => handleAppend()}
+          disabled={fields.length >= 5}
+        >
+          + Add new link
+        </Button>
+      </div>
+
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="grid grid-rows-[auto,1fr,auto] lg:block lg:overflow-y-auto"
+      >
+        {fields.length > 0 ? (
+          <div className="px-6 space-y-4 mt-6 md:px-10">
+            {fields.map((field, index) => (
+              <LinkField
+                key={field.customId}
+                index={index}
+                form={form}
+                onRemove={() => handleRemove(index)}
+              />
+            ))}
           </div>
+        ) : (
+          <EmptyLinksState />
+        )}
 
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="grid grid-rows-[auto,1fr,auto] lg:block lg:overflow-y-auto"
-          >
-            {fields.length > 0 ? (
-              <div className="px-6 space-y-4 mt-6 md:px-10">
-                {fields.map((field, index) => (
-                  <LinkField
-                    key={field.customId}
-                    index={index}
-                    form={form}
-                    onRemove={() => remove(index)}
-                  />
-                ))}
-              </div>
+        <footer className="text-right min-w-32 mt-4 border-t border-t-borders p-4 w-full lg:py-6 lg:px-10">
+          <Button type="submit" disabled={loading}>
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
             ) : (
-              <EmptyLinksState />
+              "Save"
             )}
-
-            {error && (
-              <LinkErrAlert message="Failed to save your changes. Please try again." />
-            )}
-
-            <footer className="text-right min-w-32 mt-4 border-t border-t-borders p-4 w-full lg:py-6 lg:px-10">
-              <Button type="submit" disabled={loading}>
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  "Save"
-                )}
-              </Button>
-            </footer>
-          </form>
-        </>
-      )}
+          </Button>
+        </footer>
+      </form>
     </div>
   );
 }

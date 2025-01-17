@@ -1,5 +1,6 @@
 import { ArrowRight, AtSign } from "lucide-react";
 import { Icons } from "./icons";
+import { SocialPlatform } from "@/enums/social-platform.enum";
 
 const platformStyles: Record<string, string> = {
   github: "bg-[#1A1A1A] text-white",
@@ -21,7 +22,7 @@ export function LinkPreview({
   isPreview = false,
   url,
 }: {
-  platform: keyof typeof Icons;
+  platform: SocialPlatform;
   isPreview?: boolean;
   url?: string;
 }) {

@@ -1,24 +1,9 @@
 import { PhoneIllustration } from "./phone-illu";
 import { LinkPreview } from "./link-preview";
 import { usePreviewStore } from "@/lib/zustand";
-import { useShallow } from "zustand/shallow";
-import { useQuery } from "@apollo/client";
-import { Skeleton } from "./ui/skeleton";
-import { GET_USER_LINKS } from "@/graphql/links";
-
+import { SocialPlatform } from "@/enums/social-platform.enum";
 export default function PhonePreview() {
-  const { loading } = useQuery(GET_USER_LINKS, {
-    onCompleted: (data) => {
-      usePreviewStore.setState({ user: data.users[0] });
-      usePreviewStore.setState({ links: data.links });
-    },
-  });
-  const { user } = usePreviewStore(
-    useShallow((state) => ({ user: state.user }))
-  );
-
-  const { links } = usePreviewStore((state) => state);
-
+  const { user, links } = usePreviewStore();
   const { first_name, last_name, email, profile_picture_url } = user;
 
   return (
@@ -27,8 +12,7 @@ export default function PhonePreview() {
         <PhoneIllustration />
         <div className="absolute w-9/12 top-16 left-1/2 -translate-x-1/2">
           <div className="bg-grey-light w-24 h-24 mx-auto rounded-full p-1">
-            {loading && <Skeleton className="w-24 h-24 rounded-full" />}
-            {!loading && profile_picture_url && (
+            {profile_picture_url && (
               <img
                 className="w-24 h-24 rounded-full border-2 border-purple"
                 src={profile_picture_url || "/images/default-profile.jpg"}
@@ -37,32 +21,27 @@ export default function PhonePreview() {
             )}
           </div>
           <div className="text-center mt-4 mb-8">
-            {!loading ? (
-              first_name || last_name ? (
-                <h2 className="text-lg font-bold">
-                  {first_name} {last_name}
-                </h2>
-              ) : (
-                <div className="bg-grey-light mx-auto rounded w-24 h-4 mb-4" />
-              )
+            {first_name || last_name ? (
+              <h2 className="text-lg font-bold">
+                {first_name} {last_name}
+              </h2>
             ) : (
-              <Skeleton className="w-24 mx-auto h-4 mb-2" />
+              <div className="bg-grey-light mx-auto rounded w-24 h-4 mb-4" />
             )}
-            {!loading ? (
-              email ? (
-                <p className="text-sm text-grey">{email}</p>
-              ) : (
-                <div className="w-32 h-4 mx-auto bg-grey-light rounded" />
-              )
+            {email ? (
+              <p className="text-sm text-grey">{email}</p>
             ) : (
-              <Skeleton className="w-32 mx-auto h-4" />
+              <div className="w-32 h-4 mx-auto bg-grey-light rounded" />
             )}
           </div>
           <div className="flex flex-col">
             {links
               ?.slice(0, 5)
-              .map(({ platform }) => (
-                <LinkPreview key={platform} platform={platform} />
+              .map(({ platform, url }, idx) => (
+                <LinkPreview
+                  key={`${url}-${platform}-${idx}`}
+                  platform={platform as SocialPlatform}
+                />
               ))}
             {(links?.length === 0 || links.length < 2) &&
               [...Array(2)].map((_, idx) => (
