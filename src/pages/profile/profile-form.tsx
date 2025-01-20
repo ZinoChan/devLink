@@ -10,8 +10,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useFormContext } from "react-hook-form";
-import { gql, useMutation } from "@apollo/client";
-import { UPDATE_USER_PROFILE } from "@/gql/users";
+import { useMutation } from "@apollo/client";
+import { GET_USER_PROFILE, UPDATE_USER_PROFILE } from "@/gql/users";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { UserData } from "@/validation/user.schema";
@@ -24,22 +24,10 @@ export default function ProfileForm() {
       },
       update: (cache, { data }) => {
         if (!data?.update_users_by_pk) return;
-        cache.modify({
-          fields: {
-            users() {
-              cache.writeFragment({
-                data: data.update_users_by_pk,
-                fragment: gql`
-                  fragment UpdateUser on users {
-                    id
-                    first_name
-                    last_name
-                    email
-                    profile_picture_url
-                  }
-                `,
-              });
-            },
+        cache.writeQuery({
+          query: GET_USER_PROFILE,
+          data: {
+            users: [data.update_users_by_pk],
           },
         });
       },

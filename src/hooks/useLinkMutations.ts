@@ -1,5 +1,10 @@
-import { DELETE_LINKS, INSERT_LINKS, UPDATE_LINK } from "@/gql/links";
-import { gql, Reference, useMutation } from "@apollo/client";
+import {
+  DELETE_LINKS,
+  GET_USER_LINKS,
+  INSERT_LINKS,
+  UPDATE_LINK,
+} from "@/gql/links";
+import { useMutation } from "@apollo/client";
 import toast from "react-hot-toast";
 
 export function useLinkMutations() {
@@ -14,24 +19,17 @@ export function useLinkMutations() {
       },
       update: (cache, { data }) => {
         if (!data?.insert_links?.returning) return;
-        cache.modify({
-          fields: {
-            links(existingLinks = []) {
-              const newLinkRefs = data.insert_links?.returning.map((link) =>
-                cache.writeFragment({
-                  data: link,
-                  fragment: gql`
-                    fragment NewLink on links {
-                      id
-                      platform
-                      url
-                      display_order
-                    }
-                  `,
-                })
-              );
-              return [...existingLinks, ...(newLinkRefs || [])];
-            },
+        const existingLinks = cache.readQuery({
+          query: GET_USER_LINKS,
+        });
+        cache.writeQuery({
+          query: GET_USER_LINKS,
+          data: {
+            users: existingLinks?.users ?? [],
+            links: [
+              ...(existingLinks?.links ?? []),
+              ...data.insert_links.returning,
+            ],
           },
         });
       },
@@ -45,18 +43,13 @@ export function useLinkMutations() {
       },
       update: (cache, { data }) => {
         if (!data?.delete_links?.returning) return;
-        cache.modify({
-          fields: {
-            links(existingLinks: readonly Reference[], { readField }) {
-              const deletedLinkIds = data.delete_links?.returning.map(
-                (link) => link.id
-              );
-              return existingLinks.filter(
-                (linkRef) => !deletedLinkIds?.includes(readField("id", linkRef))
-              );
-            },
-          },
-        });
+        for (const link of data.delete_links.returning) {
+          const fragmentRef = cache.identify({
+            id: link.id,
+            __typename: "links",
+          });
+          cache.evict({ id: fragmentRef });
+        }
       },
     });
 
@@ -72,34 +65,20 @@ export function useLinkMutations() {
       update: (cache, { data }) => {
         if (!data?.update_links?.returning) return;
         const updatedLinks = data.update_links.returning;
-        const updatedIds = updatedLinks.map((link) => link.id);
+        const existingLinks = cache.readQuery({
+          query: GET_USER_LINKS,
+        });
+        if (!existingLinks) return;
+        const newLinks = existingLinks.links.map((link) => {
+          const updatedLink = updatedLinks.find((l) => l.id === link.id);
+          return updatedLink ?? link;
+        });
 
-        cache.modify({
-          fields: {
-            //@ts-expect-error - couldn't get the right type
-            links(existingLinks: unknown[], { readField }) {
-              return existingLinks.map((linkRef) => {
-                //@ts-expect-error - existingLinks type needs to be defined
-                const linkId = readField("id", linkRef);
-                if (updatedIds.includes(linkId)) {
-                  const updatedLink = updatedLinks.find(
-                    (link) => link.id === linkId
-                  );
-                  return cache.writeFragment({
-                    data: updatedLink,
-                    fragment: gql`
-                      fragment UpdatedLink on links {
-                        id
-                        platform
-                        url
-                        display_order
-                      }
-                    `,
-                  });
-                }
-                return linkRef;
-              });
-            },
+        cache.writeQuery({
+          query: GET_USER_LINKS,
+          data: {
+            users: existingLinks.users,
+            links: newLinks,
           },
         });
       },
